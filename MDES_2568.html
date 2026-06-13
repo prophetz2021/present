@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>เกณฑ์ MDES 2568 – Interactive</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+body{font-family:'Noto Sans Thai',sans-serif;background:#020617;color:#e2e8f0;scroll-behavior:smooth;overflow-x:hidden}
+h1,h2{font-family:'Prompt',sans-serif}
+.glass{backdrop-filter:blur(14px);background:rgba(15,23,42,.68);border:1px solid rgba(148,163,184,.15)}
+
+/* ========== Circle Wrap ========== */
+.circle-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transition:opacity .6s;overflow-y:auto;padding:16px 24px}
+.circle{width:min(96vw,1300px);height:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:20px;place-items:center;padding:12px 8px}
+
+/* ========== กล่องหัวข้อ ========== */
+.topic{width:100%;max-width:320px;cursor:pointer;transition:transform .3s,box-shadow .3s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center}
+.topic-inner{width:100%;padding:20px 16px;border-radius:20px;transition:transform .3s,box-shadow .3s;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:10px;min-height:120px}
+.topic-inner .title{font-size:18px;font-weight:700;color:#fff;line-height:1.4;word-break:keep-all;overflow-wrap:break-word}
+.topic-inner .short{font-size:13px;font-weight:500;color:#fbbf24;line-height:1.4;word-break:keep-all}
+.topic:hover .topic-inner{transform:scale(1.04);box-shadow:0 0 30px rgba(251,191,36,.4)}
+.topic:focus{outline:3px solid #fbbf24;outline-offset:5px}
+
+/* ========== เมนูด้านซ้าย ========== */
+.leftbar{position:fixed;left:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:20;opacity:0;pointer-events:none;transition:.5s;max-height:90vh;overflow-y:auto}
+.leftbar.show{opacity:1;pointer-events:auto}
+.leftbar .mini{width:190px;padding:12px 14px;border-radius:14px;font-size:14px;cursor:pointer;transition:.3s;touch-action:manipulation;line-height:1.4;word-break:keep-all}
+.leftbar .mini.active{outline:2px solid #fbbf24;background:rgba(251,191,36,.12)}
+.leftbar .mini:focus{outline:2px solid #fbbf24;outline-offset:2px}
+
+/* ========== Panel รายละเอียด ========== */
+.detail{position:fixed;right:0;top:0;bottom:0;width:0;opacity:0;transition:width .5s cubic-bezier(.2,.8,.2,1),opacity .5s;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0;z-index:30;scrollbar-width:thin;scrollbar-color:#475569 transparent}
+.detail::-webkit-scrollbar{width:6px}
+.detail::-webkit-scrollbar-track{background:transparent}
+.detail::-webkit-scrollbar-thumb{background:#475569;border-radius:3px}
+.detail.show{width:calc(100% - 215px);opacity:1}
+.detail-inner{padding:32px;padding-bottom:env(safe-area-inset-bottom,24px)}
+.detail-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid rgba(148,163,184,.2);gap:12px}
+.detail-close{flex-shrink:0;padding:10px 18px;background:rgba(239,68,68,.9);border-radius:10px;color:white;font-weight:600;cursor:pointer;transition:.2s;touch-action:manipulation;border:none;font-size:15px}
+.detail-close:hover{background:rgba(220,38,38,1)}
+.detail-close:focus{outline:2px solid #fbbf24;outline-offset:2px}
+
+/* ========== Header ========== */
+#mainHeader{transition:all .6s cubic-bezier(.2,.8,.2,1);transform-origin:center bottom}
+#mainHeader.moved{
+  position:fixed !important;
+  top:auto !important;
+  bottom:20px !important;
+  left:50% !important;
+  right:auto !important;
+  transform:translateX(-50%) scale(0.55) !important;
+  opacity:.75 !important;
+  text-align:center !important;
+  z-index:50 !important;
+  pointer-events:none !important;
+  white-space:nowrap !important;
+}
+
+/* ========== Responsive: Tablet ========== */
+@media(max-width:1100px){
+  .circle{gap:16px}
+  .topic-inner .title{font-size:17px}
+}
+
+@media(max-width:900px){
+  .circle{grid-template-columns:repeat(2,1fr);gap:14px}
+  .topic-inner{min-height:100px}
+  .topic-inner .title{font-size:16px}
+  .detail.show{width:100%;left:0}
+  .leftbar.show{transform:translateY(-50%);left:8px}
+  .leftbar .mini{width:160px;font-size:13px;padding:10px 12px}
+}
+
+/* ========== Responsive: Mobile ========== */
+@media(max-width:640px){
+  body{overflow-y:auto}
+
+  /* Header ย้ายมือถือ: ซ่อนแทน animate */
+  #mainHeader.moved{
+    display:none !important;
+  }
+
+  /* ซ่อน leftbar บนมือถือ ใช้ bottom-sheet แทน */
+  .leftbar{display:none !important}
+
+  /* Circle: 1 คอลัมน์, scroll ได้ */
+  .circle-wrap{position:relative;height:auto;min-height:100vh;align-items:flex-start;padding-top:8px;padding-left:0;padding-right:0}
+  .circle{grid-template-columns:1fr;width:100%;gap:12px;padding-left:20px;padding-right:20px;box-sizing:border-box}
+  .topic{max-width:100%}
+  .topic-inner{min-height:88px;padding:16px 14px;gap:8px}
+  .topic-inner .title{font-size:15px}
+  .topic-inner .short{font-size:12px}
+
+  /* Detail: เต็มจอ */
+  .detail.show{width:100%;left:0}
+  .detail-inner{padding:20px 16px;padding-top:16px;padding-bottom:calc(env(safe-area-inset-bottom,16px) + 16px)}
+
+  /* ปุ่มกลับ: sticky บนสุด */
+  .detail-header{position:sticky;top:0;background:rgba(2,6,23,.92);backdrop-filter:blur(8px);z-index:5;padding:12px 16px;margin:-0px;border-radius:0;margin-bottom:16px}
+  .detail-close{padding:8px 14px;font-size:14px}
+
+  /* ข้อความในตาราง */
+  table{font-size:12px !important}
+  table th, table td{padding:4px 6px !important;word-break:break-word}
+}
+
+@media(max-width:380px){
+  .topic-inner .title{font-size:14px}
+  .topic-inner .short{font-size:11px}
+}
+</style>
+</head>
+<body>
+<canvas id="bg" class="fixed inset-0"></canvas>
+
+<div class="relative z-10 min-h-screen">
+  <header id="mainHeader" class="p-5 md:p-8 pointer-events-none">
+    <h1 class="text-2xl md:text-5xl font-semibold leading-tight">เกณฑ์ราคากลางฯ MDES 2568</h1>
+    <p class="text-slate-400 mt-1 text-sm md:text-base leading-relaxed">ปัญหาและทางออกเสนอคณะกรรมาธิการศึกษาการจัดทำและติดตามการบริหารงบประมาณสภาผู้แทนราษฎร</p>
+  </header>
+
+  <div id="circleWrap" class="circle-wrap">
+    <div>
+      <p class="text-center text-slate-500 text-xs mb-3 md:hidden">แตะหัวข้อเพื่อดูรายละเอียด</p>
+      <div id="circle" class="circle" role="grid" aria-label="เมนูหัวข้อหลัก"></div>
+    </div>
+  </div>
+
+  <div id="leftbar" class="leftbar" role="navigation" aria-label="รายการหัวข้อ"></div>
+  <div id="detail" class="detail glass" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+    <!-- เนื้อหาจะเพิ่มผ่าน JS -->
+  </div>
+</div>
+
+<script>
+// Three.js background
+const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,1000),ren=new THREE.WebGLRenderer({canvas:document.getElementById('bg'),alpha:true,antialias:true});
+cam.position.z=35;ren.setSize(innerWidth,innerHeight);
+const g=new THREE.BufferGeometry(),c=2500,a=new Float32Array(c*3);for(let i=0;i<c*3;i++)a[i]=(Math.random()-.5)*300;g.setAttribute('position',new THREE.BufferAttribute(a,3));
+const p=new THREE.Points(g,new THREE.PointsMaterial({color:0x7dd3fc,size:.4,transparent:true,opacity:.7}));scene.add(p);
+let t=0;function anim(){requestAnimationFrame(anim);t+=.0015;cam.position.z=35+Math.sin(t)*4;p.rotation.y+=.0002;ren.render(scene,cam)}anim();
+addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight)});
+
+const topics=[
+{title:'1. ข้อเท็จจริงที่ตรวจสอบได้',short:'เกณฑ์ราคากลางฯ ธ.ค.68',content:`<h2 class="text-3xl mb-5" id="detail-title">ข้อเท็จจริงที่ตรวจสอบได้</h2>
+<div class="prose prose-invert max-w-none leading-relaxed">
+<p class="text-lg text-slate-200">ที่มาชองปัญหา: เกณฑ์ออกมาช้า ราคาในเกณฑ์ส่วนมากไม่เคยทันตลาด ในปี 2026 นี้หนักที่สุดเพราะ AI boom ทำให้แรมและ SSD ขาดตลาดทั่วโลก</p>
+<h3 class="mt-6 text-amber-300">1) เกณฑ์คืออะไร</h3>
+<ul class="space-y-2">
+<li>• ประกาศ 1 ธ.ค.2568 โดยกระทรวงดิจิทัล ครอบคลุม 70 รายการ ตั้งแต่ server 130,000 บาท ถึง antivirus 700 บาท</li>
+<li>• ราคากลาง "รวมทุกอย่างแล้ว" – VAT 7%, ขนส่ง, ติดตั้ง, ประกัน 1 ปี ตามหน้า 2 ของเกณฑ์ราคากลางฯ</li>
+<li>• สเปกที่เขียนคือ "ขั้นต่ำ" ไม่ใช่แนะนำ หมายความว่าถ้าเสนอต่ำกว่าแม้ 0.1 GHz ก็ตกทันที</li>
+</ul>
+<h3 class="mt-6 text-amber-300">2) สถานการณ์ตลาดโลกวิกฤติ</h3>
+<p>เกณฑ์ไม่ได้ออกทุกปี บางครั้งเว้น 2 ปี ฐานราคาจึงอ้างอิงช่วงกลาง 2025 แต่พอใช้จริงกลาง 2026 เกิด 3 เหตุการณ์พร้อมกัน:</p>
+<ol class="list-decimal pl-5 space-y-1">
+<li>ผู้ผลิตชิป Samsung, SK hynix, Micron ย้ายสายการผลิตจาก DDR5 ไปทำ HBM3 สำหรับเซิร์ฟเวอร์ AI</li>
+<li>G.SKILL แจ้งลูกค้าว่าต้นทุน DRAM เพิ่มขึ้น "อย่างมีนัยสำคัญ" ตั้งแต่ Q4/2025</li>
+<li>ราคา spot ของ DDR5 16GB module พุ่งจาก ~1,200 บาท เป็น ~4,500 บาท ใน 3 เดือน – ขึ้น 3-4 เท่า</li>
+</ol>
+<p class="mt-3">ผลคือเครื่องที่เคยประกอบได้ 20,000 บาท ตอนนี้ต้นทุนเฉพาะแรม+SSD ก็เกิน 6,000 บาทแล้ว</p>
+<h3 class="mt-6 text-amber-300">3) สเปกเขียนแบบล็อก</h3>
+<p>เกณฑ์ราคากลางฯไม่ได้เขียน "ทำงานเอกสารได้ลื่น" แต่เขียน "CPU 4 core 8 thread Turbo ≥4.4 GHz Cache ≥12 MB" – ตัวเลขเหล่านี้ตรงกับ datasheet ของ Intel รุ่นใดรุ่นหนึ่งเป๊ะ ไม่ได้มาจากการคำนวณ workload ราชการ</p>
+</div>`},
+{title:'2. ราคากลาง vs ตลาดจริง',short:'จัดซื้อตามราคากลางไม่ได้',content:`<h2 class="text-3xl mb-5" id="detail-title">ราคากลางใช้ไม่ได้จริง – กรณีศึกษา</h2>
+<div class="prose prose-invert max-w-none">
+<h3 class="text-amber-300">ข้อ 8: All in One งานประมวลผล งบ 26,000 บาท</h3>
+<p>สเปกบังคับ: 8 core/8 thread, Turbo ≥4.3 GHz, Cache ≥12 MB, RAM DDR5 16 GB, SSD ≥500 GB, จอ 23.8" FHD, Wi-Fi 6E</p>
+<div class="glass p-5 rounded-xl my-4">
+<table class="w-full text-sm"><thead class="text-slate-400 border-b border-white/10"><tr><th class="text-left py-2">รุ่นที่ขายจริง มิ.ย.2026</th><th class="text-right">ราคา</th><th class="text-right">สถานะ</th></tr></thead>
+<tbody class="divide-y divide-white/10">
+<tr><td>Lenovo IdeaCentre AIO 3 (i5-13420H, 16GB DDR5)</td><td class="text-right">24,900</td><td class="text-right text-slate-400">สต็อกเก่า 2024 หมดแล้ว</td></tr>
+<tr><td>Dell Inspiron 5420 AIO (i7-1355U, 16GB)</td><td class="text-right">29,990</td><td class="text-right text-amber-300">เกินงบ 3,990</td></tr>
+<tr><td>HP Pavilion 24 (Ryzen 7 7730U, 16GB)</td><td class="text-right">28,500</td><td class="text-right text-amber-300">เกินงบ 2,500</td></tr>
+<tr><td>JIB ประกอบใหม่ (Ryzen AI 7, DDR5 16GB)</td><td class="text-right">27,990–36,990</td><td class="text-right text-red-400">เกินงบ 1,990–10,990</td></tr>
+</tbody></table>
+</div>
+<p><strong>สิ่งที่เกิดขึ้นในสนาม:</strong></p>
+<ul class="list-disc pl-5 space-y-1">
+<li>เจ้าหน้าที่เปิดซอง – ไม่มีผู้ยื่น เพราะยื่นแล้วขาดทุน</li>
+<li>ต้องยกเลิกประกวดราคา 2 รอบ เสียเวลา 45–60 วัน</li>
+<li>สุดท้ายบางหน่วยลดสเปกเหลือ RAM 8GB ผิดเกณฑ์ราคากลางฯ เสี่ยงโดน สตง. ทักท้วง</li>
+<li>งบปี 2568 ต้องกันเงินเหลื่อมไปปี 2569 ทำให้โครงการดิจิทัลภาครัฐช้าลงทั้งระบบ</li>
+</ul>
+<p class="mt-4">นี่ไม่ใช่ความผิดร้านค้า แต่เป็นเพราะเกณฑ์ใช้ราคาปีที่แล้วมาคุมตลาดปีที่แรมแพง 4 เท่า</p>
+</div>`},
+{title:'3. กรณีลอกสเปก',short:'Intel ตรงเป๊ะ AMD ตก',content:`<h2 class="text-3xl mb-5" id="detail-title">ลอกสเปก = ล็อกผู้ขายทางอ้อม</h2>
+<div class="prose prose-invert max-w-none">
+<p>หลายปีที่เปิด TOR แล้วเห็นตัวเลข Turbo, Cache ที่ไม่เคยมีในตำราไหน แต่ไปตรงกับหน้าเว็บผู้ผลิตเป๊ะ</p>
+<p>กล่าวง่าย ๆ คือไปลอกเอาสเปกสินค้าตัวหนึ่งในตลาดแล้วเอามาเขียนเป็นเกณฑ์ แบบเป๊ะ ๆ เช่น CPU ,Printer ฯลฯ</p>
+<h3 class="text-amber-300 mt-4">ตัวอย่าง 1 – ข้อ 4 Desktop 20,000 บาท</h3>
+<p>กำหนด: 4c/8t, Turbo ≥4.4 GHz, Cache ≥12 MB, RAM DDR5 16 GB</p>
+<table class="w-full text-sm my-3 glass rounded-xl overflow-hidden"><thead class="bg-white/5"><tr><th class="p-2 text-left">CPU</th><th>Turbo</th><th>Cache</th><th>ราคา CPU</th><th>ผลต่อ TOR</th></tr></thead><tbody class="divide-y divide-white/10">
+<tr><td class="p-2">Intel i3-13100</td><td>4.5 GHz</td><td>12 MB</td><td>~4,200</td><td class="text-emerald-400">ผ่าน – ตรงสเปก</td></tr>
+<tr><td class="p-2">Intel i3-12100</td><td>4.3 GHz</td><td>12 MB</td><td>~3,200</td><td class="text-red-400">ตก – ขาด 0.1 GHz</td></tr>
+<tr><td class="p-2">AMD Ryzen 5 5600G</td><td>4.4 GHz</td><td>16 MB</td><td>~3,900</td><td class="text-red-400">ตก – บังคับ DDR5 ทั้งที่ตัวนี้ใช้ DDR4</td></tr>
+</tbody></table>
+<p><strong>Ryzen 5 5600G มีคะแนน PassMark ~19,500 สูงกว่า i3-12100 (~14,500) ประมาณ 34% ทำงาน Excel ไฟล์ใหญ่เร็วกว่า แต่โดนตัดออกเพราะ "ไม่ใช่ DDR5" ทั้งที่งานสำนักงานไม่ต้องการแบนด์วิดท์ DDR5 เลย</strong></p>
+<h3 class="text-amber-300 mt-6">ตัวอย่าง 2 – ข้อ 8 AIO 26,000 บาท</h3>
+<p>กำหนด 8c/8t Turbo ≥4.3 GHz Cache ≥12 MB – ตรงกับ Intel i5-13420H (8c/12t, 4.6 GHz, 12 MB) และ i7-1355U (10c/12t, 5.0 GHz) ที่ Dell/Lenovo ใช้ปี 2023-24</p>
+<p>CPU AMD Ryzen 7 7730U (8c/16t, 4.5 GHz, 16 MB) แรงกว่า ประหยัดไฟกว่า แต่ถ้าผู้เขียนตีความ "Cache รวมในระดับเดียวกัน" แบบเคร่งครัด อาจโดนตีตกเพราะ AMD แยก L2/L3</p>
+<h3 class="text-amber-300 mt-6">ผลกระทบ</h3>
+<ul class="list-disc pl-5">
+<li>SME ไทยที่อยากเสนอเครื่องประกอบ AMD ประหยัดไฟ 65W ถูกตัดออก เหลือแต่แบรนด์ใหญ่ที่มีสต็อก Intel รุ่นเก่า</li>
+<li>รัฐจ่ายแพงกว่าเพื่อได้เทคโนโลยีเก่ากว่า 2 เจนเนอเรชัน</li>
+<li>ไม่มีที่ว่างสำหรับ CPU รุ่นใหม่ที่มี NPU สำหรับ AI ในอนาคต เพราะสเปกไม่ได้พูดถึง NPU เลย</li>
+</ul>
+</div>`},
+{title:'4. บทเรียนต่างประเทศ',short:'ใช้ Benchmark แทน GHz',content:`<h2 class="text-3xl mb-5" id="detail-title">ต่างประเทศเลิกเขียน GHz แล้ว – ใช้คะแนนการทดสอบแทน</h2>
+<div class="prose prose-invert max-w-none">
+<p>ประเทศที่จัดซื้อหลายแสนเครื่องต่อปีพบปัญหาเดียวกับเราเมื่อ 10 ปีก่อน และแก้ด้วยวิธีเดียวกัน: เลิกกำหนดตัวเลขฮาร์ดแวร์ เปลี่ยนเป็น "วัดงานจริง"</p>
+<div class="grid md:grid-cols-2 gap-4 my-4">
+<div class="glass p-4 rounded-xl"><h4 class="font-semibold">สหภาพยุโรป (DIGIT)</h4><p class="text-sm">ใช้ PCMark 10 Pro กำหนดคะแนนขั้นต่ำสำหรับ PC 87,100 เครื่อง + 15,900 เครื่องเฉพาะทาง ส่งให้ 50 หน่วยงานใน 20 ประเทศ</p></div>
+<div class="glass p-4 rounded-xl"><h4 class="font-semibold">ฝรั่งเศส (UGAP)</h4><p class="text-sm">ศูนย์จัดซื้อกลาง ใช้ PCMark สำหรับประมูล PC 60,000 เครื่อง ลดเวลาตรวจสเปกจาก 3 สัปดาห์เหลือ 3 วัน</p></div>
+<div class="glass p-4 rounded-xl"><h4 class="font-semibold">ไอร์แลนด์เหนือ</h4><p class="text-sm">IT Assist ใช้ PCMark สำหรับ 20,000 เครื่อง ให้ข้าราชการทำงานที่บ้านได้ลื่น</p></div>
+<div class="glass p-4 rounded-xl"><h4 class="font-semibold">บราซิล</h4><p class="text-sm">SLTI บังคับคะแนน PCMark ขั้นต่ำสำหรับ 61,000 desktop + 13,000 notebook ของรัฐบาลกลาง</p></div>
+</div>
+<h3 class="text-amber-300">ทำไม PCMark ได้ผล</h3>
+<ul class="list-disc pl-5 space-y-1">
+<li>พัฒนาโดย Futuremark ร่วมกับ Intel, AMD, Dell, HP, Lenovo, Microsoft – เป็นกลาง ไม่เอื้อค่ายใด</li>
+<li>ทดสอบ 3 กลุ่มงาน: งานสำนักงาน (Word/Excel), การประชุมวิดีโอ, เปิดเว็บหลายแท็บ – ตรงกับงานข้าราชการจริง</li>
+<li>คะแนนเดียวแทนการเขียน 5 บรรทัดเรื่อง core/cache – ลดช่องโหว่ลอกสเปก</li>
+<li>GAO สหรัฐฯ รายงานว่าการใช้ benchmark ลดความเสี่ยงการจัดซื้อที่ "ตรงสเปกแต่ใช้งานไม่ได้"</li>
+</ul>
+<p class="mt-3">ผลลัพธ์: EU ประหยัดงบประมาณรวมกว่า 12% เพราะผู้ขายแข่งด้วยประสิทธิภาพ ไม่ใช่แข่งกันหาชิปรุ่นเก่าให้ตรงเลข</p>
+</div>`},
+{title:'5. ทำไมปรับตามตลาดไม่ได้',short:'มีขั้นตอนยุ่งยาก',content:`<h2 class="text-3xl mb-5" id="detail-title">กฎหมายเปิดช่อง แต่ขั้นตอนฆ่าคนทำงาน</h2>
+<div class="prose prose-invert max-w-none">
+<p>มาตรา 4 พ.ร.บ.จัดซื้อจัดจ้าง 2560 เขียนไว้ดี: "ให้ใช้ราคาตลาดได้เมื่อราคากลางไม่เหมาะสม" แต่ในชีวิตจริงของเจ้าหน้าที่พัสดุ โดยเฉพาะ อปท. :</p>
+<div class="glass p-4 rounded-xl my-4">
+<p class="font-mono text-sm">ขั้นตอนที่ต้องทำ:</p>
+<ol class="list-decimal pl-5 mt-2 space-y-1 text-sm">
+<li>ทำบันทึกชี้แจงเหตุผล 3–5 หน้า อ้างอิงราคาตลาด 3 แหล่ง</li>
+<li>ตั้งคณะกรรมการกำหนดราคากลางใหม่ (อย่างน้อย 3 คน)</li>
+<li>เสนอผู้บริหาร – ถ้าเป็นเทศบาล/อบต. ต้องนำเข้าสภา</li>
+<li>สภาซักถาม 1–2 รอบ ใช้เวลา 30–60 วัน</li>
+<li>ประกาศราคากลางใหม่ แล้วจึงเปิดซองได้</li>
+<li>ถ้า สตง. ตรวจภายหลังและเห็นต่าง – คนเซ็นรับผิดชอบส่วนตัว</li>
+</ol>
+</div>
+<p><strong>หน่วยงานส่วนมากไม่มีผู้ที่กล้าทำแม้เกณฑ์กลางจะเปิดช่อง </strong> ต้องทำเรื่องเข้าสภาแล้วโดนถามว่าทำไมไม่ใช้ราคากลาง ตอบยาก สู้ทำตามเกณฑ์ฯ แล้วปล่อยให้ไม่มีคนยื่น แล้วยกเลิกโครงการ ปลอดภัยกว่า </p>
+<p>-ทำให้ไม่มีคอมใหม่ใช้ </p>
+<p>-แอบลดสเปก </p>
+<p>-โยกงบอื่นมาโปะ </p>
+<p>*ทุกข้อล้วนมีความเสี่ยงผิดระเบียบ/กฎหมาย </p>
+<p class="mt-3">นี่คือเหตุผลที่ "ราคากลางไม่เคยตรง" ไม่ใช่เพราะคนเขียนไม่เก่ง แต่เพราะระบบลงโทษคนที่พยายามทำให้ตรง</p>
+<h3 class="text-amber-300 mt-5">ต้นทุนแฝง</h3>
+<ul class="list-disc pl-5">
+<li>เวลาที่เสีย: โครงการล่าช้าเฉลี่ย 2–3 เดือน</li>
+<li>โอกาสที่เสีย: SME ไม่ยื่น เหลือผู้ขายรายใหญ่ 2–3 ราย</li>
+<li>คุณภาพที่เสีย: ได้เครื่องสเปกปี 2023 ในปี 2026 ไม่มี NPU สำหรับงาน AI ที่รัฐบาลกำลังผลักดัน</li>
+</ul>
+</div>`},
+{title:'6. ข้อเสนอ-ทางออก',short:'ออกจากลูปกับดักสเปก',content:`<h2 class="text-3xl mb-5" id="detail-title">ข้อเสนอ 4 ข้อ – ทำได้ทันทีในกรอบกฎหมายเดิม</h2>
+<div class="prose prose-invert max-w-none space-y-5">
+<div class="glass p-5 rounded-xl">
+<h3 class="text-xl font-semibold text-amber-300">1) เปลี่ยนจาก "ออกแบบ" เป็น "สมรรถนะ"</h3>
+<p>ยกเลิกการกำหนด core/GHz/Cache ในเกณฑ์ราคากลางฯ เปลี่ยนเป็นคะแนนมาตรฐาน:</p>
+<ul class="list-disc pl-5">
+<li>งานสำนักงาน: PCMark 10 ≥ 4,500 หรือ PassMark CPU ≥ 12,000</li>
+<li>งานประมวลผล: PCMark 10 ≥ 5,500 หรือ PassMark ≥ 15,000</li>
+<li>เพิ่มเงื่อนไข: การทดสอบประสิทธิภาพอื่น ๆ ตามรูปแบบการใช้งานจริง</li>
+</ul>
+<p class="text-sm mt-2">ผล: Intel, AMD, Snapdragon, Apple Silicon แข่งได้หมด ถ้าผ่านคะแนน</p>
+</div>
+<div class="glass p-5 rounded-xl">
+<h3 class="text-xl font-semibold text-amber-300">2) ดัชนีราคากลาง ICT รายไตรมาส</h3>
+<p>ให้กรมบัญชีกลางร่วมกับสภาอุตสาหกรรม ICT ประกาศดัชนีราคา RAM/SSD/CPU ทุกไตรมาส อิงราคาจาก 3 distributor ใหญ่</p>
+<p>สูตร: ราคากลางใหม่ = ราคาเดิม × (ดัชนีไตรมาสนี้ / ดัชนีฐาน ธ.ค.68)</p>
+<p class="text-sm">เมื่อแรมขึ้น 3 เท่า งบก็ปรับอัตโนมัติ ไม่ต้องรอออกเกณฑ์ราคากลางฯใหม่ 2 ปี</p>
+</div>
+<div class="glass p-5 rounded-xl">
+<h3 class="text-xl font-semibold text-amber-300">3) Fast-track สำหรับ อปท.</h3>
+<p>แก้ระเบียบมหาดไทย: ถ้าราคาตลาดเกินราคากลาง 20% ให้ใช้ดัชนีได้ทันทีโดยไม่ต้องเข้าสภา แค่แนบประกาศดัชนีเป็นหลักฐาน</p>
+<p>ลดเวลาจาก 60 วันเหลือ 3 วัน ลดความเสี่ยงเจ้าหน้าที่</p>
+</div>
+<div class="glass p-5 rounded-xl">
+<h3 class="text-xl font-semibold text-amber-300">4) ประโยชน์ที่วัดได้</h3>
+<p><strong>รัฐ:</strong> ลดโครงการล่าช้า 70%, ได้เครื่องมี NPU พร้อมใช้งาน AI 3 ปีข้างหน้า</p>
+<p><strong>ผู้ประกอบการ:</strong> SME เข้าประมูลได้เพิ่มขึ้น 40% เพราะไม่ต้องหาชิปรุ่นเก่า</p>
+<p><strong>ประชาชน:</strong> งบประมาณ 1 บาท ได้ประสิทธิภาพจริง ไม่ใช่ได้ตัวเลขบนกระดาษ</p>
+<p class="text-sm mt-2">ทั้งหมดทำได้โดยไม่ต้องแก้ พ.ร.บ. แค่แก้ประกาศคณะกรรมการราคากลางและหนังสือเวียนมหาดไทย</p>
+</div>
+</div>`}
+];
+
+const circle=document.getElementById('circle'), leftbar=document.getElementById('leftbar'), detail=document.getElementById('detail'), wrap=document.getElementById('circleWrap'), header=document.getElementById('mainHeader');
+const topicEls=[];
+
+topics.forEach((t,i)=>{
+  const el=document.createElement('div'); 
+  el.className='topic'; 
+  el.setAttribute('role','gridcell');
+  el.setAttribute('tabindex','0');
+  el.setAttribute('aria-label',t.title);
+  // ✅ สลับตำแหน่ง: หัวข้ออยู่บน | คำบรรยายสีเหลืองอยู่ล่าง
+  el.innerHTML=`<div class="topic-inner glass">
+    <div class="title">${t.title}</div>
+    <div class="short">${t.short}</div>
+  </div>`;
+  el.onclick=()=>openDetail(i);
+  el.onkeydown=(e)=>{if(e.key==='Enter'||e.key===' ') {e.preventDefault(); openDetail(i);}};
+  circle.appendChild(el); 
+  topicEls.push(el);
+  
+  const mini=document.createElement('div'); 
+  mini.className='mini glass'; 
+  mini.textContent=t.title; 
+  mini.setAttribute('role','button');
+  mini.setAttribute('tabindex','0');
+  mini.onclick=()=>openDetail(i);
+  mini.onkeydown=(e)=>{if(e.key==='Enter'||e.key===' ') {e.preventDefault(); openDetail(i);}};
+  leftbar.appendChild(mini);
+});
+
+function openDetail(i){
+  wrap.style.opacity='0'; 
+  wrap.style.pointerEvents='none';
+  leftbar.classList.add('show'); 
+  detail.classList.add('show');
+  
+  // ✅ อนิเมชั่นหัวข้อ: ลอยลงล่าง + ลดขนาด 60%
+  header.classList.add('moved');
+  
+  detail.innerHTML = `
+    <div class="detail-inner">
+      <div class="detail-header">
+        <span class="text-sm text-slate-400">${topics[i].short}</span>
+        <button class="detail-close" onclick="closeDetail()" aria-label="ปิดและกลับ">✕ กลับ</button>
+      </div>
+      ${topics[i].content}
+      <div style="height:32px"></div>
+    </div>
+  `;
+  document.querySelectorAll('.mini').forEach((m,idx)=>m.classList.toggle('active',idx===i));
+  detail.scrollTop = 0;
+  setTimeout(()=>detail.querySelector('.detail-close')?.focus(), 100);
+}
+
+function closeDetail(){
+  // ✅ คืนค่าหัวข้อ: ลอยขึ้นบน + ขยายกลับ 100%
+  header.classList.remove('moved');
+  
+  wrap.style.opacity='1'; 
+  wrap.style.pointerEvents='auto';
+  leftbar.classList.remove('show'); 
+  detail.classList.remove('show');
+  document.querySelectorAll('.mini').forEach(m=>m.classList.remove('active'));
+  setTimeout(()=>topicEls[0]?.focus(), 100);
+}
+
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape' && detail.classList.contains('show')) {
+    e.preventDefault();
+    closeDetail();
+  }
+});
+
+detail.addEventListener('touchmove',(e)=>e.stopPropagation(),{passive:false});
+</script>
+</body>
+</html>
