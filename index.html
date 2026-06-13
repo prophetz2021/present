@@ -146,7 +146,7 @@ let t=0;function anim(){requestAnimationFrame(anim);t+=.0015;cam.position.z=35+M
 addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight)});
 
 const topics=[
-{title:'1. ข้อเท็จจริงที่ตรวจสอบได้',short:'เกณฑ์ราคากลางฯ ธ.ค.68',content:`<h2 class="text-3xl mb-5" id="detail-title">ข้อเท็จจริงที่ตรวจสอบได้</h2>
+{title:'1. ที่มาของปัญหา',short:'เกณฑ์ราคากลางฯ ธ.ค.68',content:`<h2 class="text-3xl mb-5" id="detail-title">ข้อเท็จจริงที่ตรวจสอบได้</h2>
 <div class="prose prose-invert max-w-none leading-relaxed">
 <p class="text-lg text-slate-200">ที่มาของปัญหา: การจัดทำเกณฑ์ราคากลางล่าช้า ราคาในเกณฑ์ส่วนมากจึงไม่เคยทันต่อราคาจริงในตลาด ในปี 2026 นี้หนักที่สุดเพราะ AI Boom ทำให้แรมและ SSD ขาดตลาดทั่วโลก</p>
 <p class="text-lg text-slate-200">อุตสาหกรรม AI ได้กว้านซื้อซิปจำนวนมากทำให้ ตลาด comsumer ขาดสินค้ามา supply ทำให้ฮาร์ดแวร์บางส่วนราคาพุ่งสูง 100-400%</p>
@@ -188,6 +188,65 @@ const topics=[
 <li>งบปี 2568 ต้องกันเงินเหลื่อมไปปี 2569 ทำให้โครงการดิจิทัลภาครัฐช้าลงทั้งระบบ</li>
 </ul>
 <p class="mt-4">นี่ไม่ใช่ความผิดร้านค้า แต่เป็นเพราะเกณฑ์ใช้ราคาปีที่แล้วมาคุมตลาดปีที่แรมแพง 4 เท่า</p>
+
+
+<h3 class="mt-8 text-amber-300">ราคาสินค้า IT โลก ม.ค. 2025 – มิ.ย. 2026</h3>
+<p class="text-sm text-slate-400 mb-3">เทียบกับราคาฐาน มกราคม 2025 = 100 | แหล่งข้อมูล: Tom's Hardware, TrendForce, Gamers Nexus</p>
+
+<div class="glass p-4 rounded-xl my-4">
+  <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+    <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:#94a3b8;">
+      <span style="width:20px;height:3px;background:#E24B4A;display:inline-block;border-radius:2px;"></span>DDR5 RAM 32GB
+    </span>
+    <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:#94a3b8;">
+      <span style="width:20px;height:3px;background:#EF9F27;display:inline-block;border-radius:2px;border-top:2px dashed #EF9F27;height:0;"></span>SSD NVMe 2TB
+    </span>
+    <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:#94a3b8;">
+      <span style="width:20px;height:3px;background:#378ADD;display:inline-block;border-radius:2px;"></span>GPU RTX mid-range
+    </span>
+    <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:#94a3b8;">
+      <span style="width:20px;height:3px;background:#1D9E75;display:inline-block;border-radius:2px;"></span>Notebook PC
+    </span>
+    <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:#94a3b8;">
+      <span style="width:20px;height:3px;background:#7F77DD;display:inline-block;border-radius:2px;"></span>Desktop / All-in-One PC
+    </span>
+  </div>
+  <div style="position:relative;width:100%;height:300px;">
+    <canvas id="itPriceChart" role="img" aria-label="กราฟเส้นราคาสินค้า IT ม.ค.2025 ถึง มิ.ย.2026">ราคา RAM DDR5 เพิ่มขึ้นกว่า 400%, SSD NVMe เพิ่มขึ้น ~115%, GPU เพิ่ม ~40%, Notebook และ Desktop/AIO เพิ่ม 20-40%</canvas>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:16px 0;">
+  <div class="glass p-3 rounded-xl text-center">
+    <p style="font-size:11px;color:#94a3b8;margin:0 0 4px;">DDR5 RAM 32GB</p>
+    <p style="font-size:22px;font-weight:700;color:#E24B4A;margin:0;">+400%</p>
+    <p style="font-size:11px;color:#64748b;margin:2px 0 0;">$80 → $432</p>
+  </div>
+  <div class="glass p-3 rounded-xl text-center">
+    <p style="font-size:11px;color:#94a3b8;margin:0 0 4px;">SSD NVMe 2TB</p>
+    <p style="font-size:22px;font-weight:700;color:#EF9F27;margin:0;">+115%</p>
+    <p style="font-size:11px;color:#64748b;margin:2px 0 0;">$120 → $430</p>
+  </div>
+  <div class="glass p-3 rounded-xl text-center">
+    <p style="font-size:11px;color:#94a3b8;margin:0 0 4px;">GPU RTX mid</p>
+    <p style="font-size:22px;font-weight:700;color:#378ADD;margin:0;">+40%</p>
+    <p style="font-size:11px;color:#64748b;margin:2px 0 0;">เกิน MSRP ตลอด</p>
+  </div>
+  <div class="glass p-3 rounded-xl text-center">
+    <p style="font-size:11px;color:#94a3b8;margin:0 0 4px;">Notebook PC</p>
+    <p style="font-size:22px;font-weight:700;color:#1D9E75;margin:0;">+40%</p>
+    <p style="font-size:11px;color:#64748b;margin:2px 0 0;">$900 → $1,200+</p>
+  </div>
+  <div class="glass p-3 rounded-xl text-center">
+    <p style="font-size:11px;color:#94a3b8;margin:0 0 4px;">Desktop / AIO</p>
+    <p style="font-size:22px;font-weight:700;color:#7F77DD;margin:0;">+20%</p>
+    <p style="font-size:11px;color:#64748b;margin:2px 0 0;">Dell/Lenovo ขึ้น 15-20%</p>
+  </div>
+</div>
+
+<div id="itChartPlaceholder"></div>
+
+
 </div>`},
 {title:'3. กรณีลอกสเปก',short:'Intel ตรงเป๊ะ AMD ตก',content:`<h2 class="text-3xl mb-5" id="detail-title">ลอกสเปก = ล็อกผู้ขายทางอ้อม</h2>
 <div class="prose prose-invert max-w-none">
@@ -200,10 +259,13 @@ const topics=[
 <tr><td class="p-2">Intel i3-12100</td><td>4.3 GHz</td><td>12 MB</td><td>~3,200</td><td class="text-red-400">ตก – ขาด 0.1 GHz</td></tr>
 <tr><td class="p-2">AMD Ryzen 5 5600G</td><td>4.4 GHz</td><td>16 MB</td><td>~3,900</td><td class="text-red-400">ตก – บังคับ DDR5 ทั้งที่ตัวนี้ใช้ DDR4</td></tr>
 </tbody></table>
-<p><strong>Ryzen 5 5600G มีคะแนน PassMark ~19,500 สูงกว่า i3-12100 (~14,500) ประมาณ 34% ทำงาน Excel ไฟล์ใหญ่เร็วกว่า แต่โดนตัดออกเพราะ "ไม่ใช่ DDR5" ทั้งที่งานสำนักงานไม่ต้องการแบนด์วิดท์ DDR5 เลย</strong></p>
+<H3><p><strong>Ryzen 5 5600G มีคะแนน PassMark ~19,500 สูงกว่า i3-12100 (~14,500) ประมาณ 34% ทำงาน Excel ไฟล์ใหญ่เร็วกว่า แต่โดนตัดออกเพราะ "ไม่ใช่ DDR5" ทั้งที่งานสำนักงานไม่ต้องการแบนด์วิดท์ DDR5 เลย</strong></p></H3>
 <h3 class="text-amber-300 mt-6">ตัวอย่าง 2 – ข้อ 8 AIO 26,000 บาท</h3>
 <p>กำหนด 8c/8t Turbo ≥4.3 GHz Cache ≥12 MB – ตรงกับ Intel i5-13420H (8c/12t, 4.6 GHz, 12 MB) และ i7-1355U (10c/12t, 5.0 GHz) ที่ Dell/Lenovo ใช้ปี 2023-24</p>
 <p>CPU AMD Ryzen 7 7730U (8c/16t, 4.5 GHz, 16 MB) แรงกว่า ประหยัดไฟกว่า แต่ถ้าผู้เขียนตีความ "Cache รวมในระดับเดียวกัน" แบบเคร่งครัด อาจโดนตีตกเพราะ AMD แยก L2/L3</p>
+<h3 class="text-amber-300 mt-6">กล่าวโดยสรุปคือ</h3>
+<p>เณฑ์กลางกำหนด สเปกตาม datasheet ของผู้ผลิตซึ่งหลายครั้งก็กำหนดตามสินค้ายี่ห้อเดียวเท่านั้น ไม่ได้มองถึงความสามารถจริงของฮารดแวร์ เช่น CPU ความเร็ว 4.0GHz ไม่ได้ช้ากว่า CPU 4.4GHz เสมอไปหากมีสถาปัตยกรรมที่ดีกว่า</p>
+<p>จำนวน Cache ที่น้อยกว่าเพียงเล็กน้อยก็ไม่ได้เป็นตัวชี้วัด โดยเฉพาะเกณฑ์กลางที่ระบุว่า "มี Cache ระดับเดียวกันไม่น้อยกว่า xx..MB" ซึ่งการระบุเช่นนี้เป็นการเอื้อให้ Intel โดยอ้อม เพราะ AMD จะทำสถาปัตยกรรมแยก L2/L3 Cache แต่ Intel รวมในระดับเดียวกัน</p>
 <h3 class="text-amber-300 mt-6">ผลกระทบ</h3>
 <ul class="list-disc pl-5">
 <li>SME ไทยที่อยากเสนอเครื่องประกอบ AMD ประหยัดไฟ 65W ถูกตัดออก เหลือแต่แบรนด์ใหญ่ที่มีสต็อก Intel รุ่นเก่า</li>
@@ -259,15 +321,15 @@ const topics=[
 {title:'6. ข้อเสนอ-ทางออก',short:'ออกจากลูปกับดักสเปก',content:`<h2 class="text-3xl mb-5" id="detail-title">ข้อเสนอ 4 ข้อ – ทำได้ทันทีในกรอบกฎหมายเดิม</h2>
 <div class="prose prose-invert max-w-none space-y-5">
 <div class="glass p-5 rounded-xl">
-<h3 class="text-xl font-semibold text-amber-300">1) เปลี่ยนจาก "ออกแบบ" เป็น "สมรรถนะ"</h3>
-<p>ยกเลิกการกำหนด core/GHz/Cache ในเกณฑ์ราคากลางฯ เปลี่ยนเป็นคะแนนมาตรฐาน:</p>
+<h3 class="text-xl font-semibold text-amber-300">1) เปลี่ยนจาก "ออกแบบ" เป็น "สมรรถนะจริง"</h3>
+<p>ยกเลิกการกำหนด core/GHz/Cache ในเกณฑ์ราคากลางฯ เปลี่ยนเป็นคะแนน Benckmark มาตรฐาน ตัวอย่างเช่น:</p>
 <ul class="list-disc pl-5">
 <li>งานสำนักงาน: PCMark 10 ≥ 4,500 หรือ PassMark CPU ≥ 12,000</li>
 <li>งานประมวลผล: PCMark 10 ≥ 5,500 หรือ PassMark ≥ 15,000</li>
-<li>เพิ่มเงื่อนไข: การทดสอบประสิทธิภาพอื่น ๆ ตามรูปแบบการใช้งานจริง</li>
-<li><strong>จัดทำเกณฑ์ราคากลางโดยให้ทุกภาคส่วนได้มีส่วนร่วมอย่างแท้จริง แก้ไขขั้นตอนลดความล่าช้าในการจัดทำ</strong></li>
+<li>เพิ่มเงื่อนไข: การทดสอบประสิทธิภาพอื่น ๆ ตามรูปแบบการใช้งานจริง เช่น งานเขียนแบบ ฯลฯ</li>
+<li style="color: #fbbf24";><strong>จัดทำเกณฑ์ราคากลางโดยให้ทุกภาคส่วนได้มีส่วนร่วมอย่างแท้จริง แก้ไขขั้นตอนลดความล่าช้าในการจัดทำ</strong></li>
 </ul>
-<p class="text-sm mt-2">ผล: Intel, AMD, Snapdragon, Apple Silicon แข่งได้หมด ถ้าผ่านคะแนน</p>
+<p class="text-sm mt-2">ผลที่คาดว่าจะได้รับ: ทำให้ฮาร์ดแวร์ของทุกค่าย Intel, AMD, Snapdragon, Apple Silicon แข่งได้หมด ถ้าผ่านคะแนน ไม่เกิดการล๊อกสเปกที่เกิดจากความจงใจหรือไม่ก็ตาม</p>
 </div>
 <div class="glass p-5 rounded-xl">
 <h3 class="text-xl font-semibold text-amber-300">2) ดัชนีราคากลาง ICT รายไตรมาส</h3>
