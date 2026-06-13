@@ -145,6 +145,8 @@ h1,h2{font-family:'Prompt',sans-serif}
   </div>
 </div>
 
+<div id="authorCredit" style="position:fixed;bottom:12px;right:16px;font-size:11px;color:rgba(148,163,184,0.6);z-index:15;pointer-events:none;">ผู้จัดทำ : นายสิทธิพงษ์ จรัสแผ้ว</div>
+
 <script>
 // Three.js background
 const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,1000),ren=new THREE.WebGLRenderer({canvas:document.getElementById('bg'),alpha:true,antialias:true});
@@ -407,6 +409,7 @@ function openDetail(i){
   // ซ่อน mainHeader บน PC / landscape ทันที
   const isLandscape = window.innerWidth > 640 || (window.innerWidth > window.innerHeight);
   if(isLandscape) header.style.display='none';
+  document.getElementById('authorCredit').style.display='none';
 
   // Push state เพื่อดัก back button มือถือ
   history.pushState({detail: true}, '');
@@ -449,6 +452,7 @@ function openDetail(i){
 function closeDetail(fromPopstate=false){
   header.classList.remove('moved');
   header.style.display='';
+  document.getElementById('authorCredit').style.display='';
   wrap.style.opacity='1'; 
   wrap.style.pointerEvents='auto';
   leftbar.classList.remove('show'); 
