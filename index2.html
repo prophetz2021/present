@@ -122,12 +122,8 @@ h1,h2{font-family:'Prompt',sans-serif}
   .topic-inner .short{font-size:11px}
 }
 
-/* authorCredit: fixed บน PC, in-flow บนมือถือ */
-@media(max-width:640px){
-  #authorCredit{display:none !important}
-  #authorCreditMobile{display:block !important}
-}
-@media(max-height:500px) and (orientation:landscape){
+/* authorCredit: fixed บน PC, in-flow บนมือถือทุก orientation */
+@media(max-width:640px), (max-height:500px) and (orientation:landscape){
   #authorCredit{display:none !important}
   #authorCreditMobile{display:block !important}
 }
