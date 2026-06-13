@@ -323,6 +323,9 @@ function openDetail(i){
   leftbar.classList.add('show'); 
   detail.classList.add('show');
   header.classList.add('moved');
+
+  // Push state เพื่อดัก back button มือถือ
+  history.pushState({detail: true}, '');
   
   // คำนวณ width ของ detail จาก leftbar จริงๆ
   requestAnimationFrame(()=>{
@@ -347,9 +350,8 @@ function openDetail(i){
   setTimeout(()=>detail.querySelector('.detail-close')?.blur(), 100);
 }
 
-function closeDetail(){
+function closeDetail(fromPopstate=false){
   header.classList.remove('moved');
-  
   wrap.style.opacity='1'; 
   wrap.style.pointerEvents='auto';
   leftbar.classList.remove('show'); 
@@ -357,13 +359,11 @@ function closeDetail(){
   detail.style.width='';
   document.querySelectorAll('.mini').forEach(m=>m.classList.remove('active'));
   setTimeout(()=>topicEls[0]?.blur(), 100);
+  if(!fromPopstate && history.state?.detail) history.back();
 }
 
-document.addEventListener('keydown',(e)=>{
-  if(e.key==='Escape' && detail.classList.contains('show')) {
-    e.preventDefault();
-    closeDetail();
-  }
+window.addEventListener('popstate', ()=>{
+  if(detail.classList.contains('show')) closeDetail(true);
 });
 
 detail.addEventListener('touchmove',(e)=>e.stopPropagation(),{passive:false});
