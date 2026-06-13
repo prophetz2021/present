@@ -247,7 +247,7 @@ const topics=[
 <li>ไม่มีที่ว่างสำหรับ CPU รุ่นใหม่ที่มี NPU สำหรับ AI ในอนาคต เพราะสเปกไม่ได้พูดถึง NPU เลย</li>
 </ul>
 </div>`},
-{title:'4. บทเรียนต่างประเทศ',short:'ใช้ Benchmark แทน GHz',content:`<h2 class="text-3xl mb-5" id="detail-title">ต่างประเทศเลิกเขียน GHz แล้ว – ใช้คะแนนการทดสอบแทน (Benchmark)</h2>
+{title:'4. บทเรียนต่างประเทศ',short:'ใช้ Benchmark แทน GHz',content:`<h2 class="text-3xl mb-5" id="detail-title">ต่างประเทศเลิกเขียน GHz แล้ว – ใช้คะแนนการทดสอบแทน</h2>
 <div class="prose prose-invert max-w-none">
 <p>ประเทศที่จัดซื้อหลายแสนเครื่องต่อปีพบปัญหาเดียวกับเราเมื่อ 10 ปีก่อน และแก้ด้วยวิธีเดียวกัน: เลิกกำหนดตัวเลขฮาร์ดแวร์ เปลี่ยนเป็น "วัดงานจริง"</p>
 <div class="grid md:grid-cols-2 gap-4 my-4">
@@ -395,6 +395,9 @@ function openDetail(i){
   leftbar.classList.add('show'); 
   detail.classList.add('show');
   header.classList.add('moved');
+  // ซ่อน mainHeader บน PC / landscape ทันที
+  const isLandscape = window.innerWidth > 640 || (window.innerWidth > window.innerHeight);
+  if(isLandscape) header.style.display='none';
 
   // Push state เพื่อดัก back button มือถือ
   history.pushState({detail: true}, '');
@@ -410,7 +413,10 @@ function openDetail(i){
   detail.innerHTML = `
     <div class="detail-inner">
       <div class="detail-header">
-        <span class="text-sm text-slate-400">${topics[i].short}</span>
+        <div style="display:flex;flex-direction:column;gap:2px;overflow:hidden;">
+          <span class="detail-main-title" style="font-family:'Prompt',sans-serif;font-size:clamp(13px,1.8vw,20px);font-weight:600;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">เกณฑ์ราคากลางฯ MDES 2568</span>
+          <span class="text-sm text-slate-400" style="font-size:12px;">${topics[i].short}</span>
+        </div>
         <button class="detail-close" onclick="closeDetail()" aria-label="ปิดและกลับ">✕ กลับ</button>
       </div>
       ${topics[i].content}
@@ -433,6 +439,7 @@ function openDetail(i){
 
 function closeDetail(fromPopstate=false){
   header.classList.remove('moved');
+  header.style.display='';
   wrap.style.opacity='1'; 
   wrap.style.pointerEvents='auto';
   leftbar.classList.remove('show'); 
