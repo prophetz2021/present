@@ -112,6 +112,15 @@ h1,h2{font-family:'Prompt',sans-serif}
   .topic-inner .title{font-size:14px}
   .topic-inner .short{font-size:11px}
 }
+
+/* ========== Mobile Landscape ========== */
+@media(max-height:500px) and (orientation:landscape){
+  .circle-wrap{position:relative;height:auto;min-height:calc(100vh - 80px);align-items:flex-start;padding-top:8px;overflow:visible}
+  .circle{grid-template-columns:repeat(3,1fr);gap:12px;padding-bottom:16px}
+  .topic-inner{min-height:80px;padding:12px 10px}
+  .topic-inner .title{font-size:13px}
+  .topic-inner .short{font-size:11px}
+}
 </style>
 </head>
 <body>
