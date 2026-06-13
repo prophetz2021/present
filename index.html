@@ -121,6 +121,47 @@ h1,h2{font-family:'Prompt',sans-serif}
   .topic-inner .title{font-size:13px}
   .topic-inner .short{font-size:11px}
 }
+
+/* QR: fixed บน PC, in-flow บนมือถือ */
+@media(max-width:640px),(max-height:500px) and (orientation:landscape){
+  #qrWrap{display:none !important}
+  #qrWrapMobile{display:inline-block !important}
+  #mobileCreditWrap{display:block !important}
+}
+@media(min-width:641px) and (min-height:501px){
+  #qrWrapMobile{display:none !important}
+  #mobileCreditWrap{display:none !important}
+}
+/* authorCredit: fixed บน PC, in-flow บนมือถือทุก orientation */
+@media(max-width:640px), (max-height:500px) and (orientation:landscape){
+  #authorCredit{display:none !important}
+  #authorCreditMobile{display:block !important}
+}
+@media(min-width:641px) and (min-height:501px){
+  #authorCreditMobile{display:none !important}
+}
+
+/* QR Code */
+#qrWrap, #qrWrapMobile { cursor:pointer; display:inline-block; }
+#qrWrap img, #qrWrapMobile img {
+  width:64px; height:64px; border-radius:12px;
+  transition:transform .2s;
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
+#qrWrap:hover img, #qrWrapMobile:hover img { transform:scale(1.08); }
+#qrOverlay {
+  display:none; position:fixed; inset:0; z-index:100;
+  background:rgba(2,6,23,.85); backdrop-filter:blur(6px);
+  align-items:center; justify-content:center;
+}
+#qrOverlay.show { display:flex; }
+#qrOverlay img {
+  width:min(80vw,320px); height:min(80vw,320px);
+  border-radius:20px; box-shadow:0 8px 32px rgba(0,0,0,.6);
+}
+#qrOverlay p {
+  color:#94a3b8; font-size:13px; text-align:center; margin-top:12px;
+}
 </style>
 </head>
 <body>
@@ -136,6 +177,12 @@ h1,h2{font-family:'Prompt',sans-serif}
     <div>
       <p class="text-center text-slate-500 text-xs mb-3 md:hidden">แตะหัวข้อเพื่อดูรายละเอียด</p>
       <div id="circle" class="circle" role="grid" aria-label="เมนูหัวข้อหลัก"></div>
+      <div id="mobileCreditWrap" style="text-align:right;padding:12px 24px 8px;">
+        <div id="qrWrapMobile" onclick="document.getElementById('qrOverlay').classList.toggle('show')" style="display:block;margin-bottom:4px;cursor:pointer;">
+          <img src="qr-code.png" alt="QR Code" />
+        </div>
+        <p id="authorCreditMobile" style="display:none;margin:0;font-size:11px;color:rgba(148,163,184,0.6);pointer-events:none;">ผู้จัดทำ : นายสิทธิพงษ์ จรัสแผ้ว</p>
+      </div>
     </div>
   </div>
 
@@ -145,6 +192,16 @@ h1,h2{font-family:'Prompt',sans-serif}
   </div>
 </div>
 
+<div id="qrWrap" onclick="document.getElementById('qrOverlay').classList.toggle('show')" style="position:fixed;bottom:32px;right:16px;z-index:15;">
+  <img src="qr-code.png" alt="QR Code" />
+</div>
+
+<div id="qrOverlay" onclick="this.classList.remove('show')">
+  <div style="text-align:center">
+    <img src="qr-code.png" alt="QR Code" />
+    <p>แตะที่ไหนก็ได้เพื่อปิด</p>
+  </div>
+</div>
 <div id="authorCredit" style="position:fixed;bottom:12px;right:16px;font-size:11px;color:rgba(148,163,184,0.6);z-index:15;pointer-events:none;">ผู้จัดทำ : นายสิทธิพงษ์ จรัสแผ้ว</div>
 
 <script>
@@ -410,6 +467,9 @@ function openDetail(i){
   const isLandscape = window.innerWidth > 640 || (window.innerWidth > window.innerHeight);
   if(isLandscape) header.style.display='none';
   document.getElementById('authorCredit').style.display='none';
+  document.getElementById('qrWrap').style.display='none';
+  document.getElementById('qrWrapMobile').style.display='none';
+  document.getElementById('mobileCreditWrap').style.display='none';
 
   // Push state เพื่อดัก back button มือถือ
   history.pushState({detail: true}, '');
@@ -453,6 +513,9 @@ function closeDetail(fromPopstate=false){
   header.classList.remove('moved');
   header.style.display='';
   document.getElementById('authorCredit').style.display='';
+  document.getElementById('qrWrap').style.display='';
+  document.getElementById('qrWrapMobile').style.display='';
+  document.getElementById('mobileCreditWrap').style.display='';
   wrap.style.opacity='1'; 
   wrap.style.pointerEvents='auto';
   leftbar.classList.remove('show'); 
