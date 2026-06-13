@@ -347,13 +347,13 @@ function openDetail(i){
 }
 
 function closeDetail(){
-  // ✅ คืนค่าหัวข้อ: ลอยขึ้นบน + ขยายกลับ 100%
   header.classList.remove('moved');
   
   wrap.style.opacity='1'; 
   wrap.style.pointerEvents='auto';
   leftbar.classList.remove('show'); 
   detail.classList.remove('show');
+  detail.style.width='';
   document.querySelectorAll('.mini').forEach(m=>m.classList.remove('active'));
   setTimeout(()=>topicEls[0]?.focus(), 100);
 }
