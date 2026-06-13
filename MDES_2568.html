@@ -42,7 +42,7 @@ h1,h2{font-family:'Prompt',sans-serif}
 .detail-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid rgba(148,163,184,.2);gap:12px}
 .detail-close{flex-shrink:0;padding:10px 18px;background:rgba(239,68,68,.9);border-radius:10px;color:white;font-weight:600;cursor:pointer;transition:.2s;touch-action:manipulation;border:none;font-size:15px}
 .detail-close:hover{background:rgba(220,38,38,1)}
-.detail-close:focus{outline:2px solid #fbbf24;outline-offset:2px}
+.detail-close:focus{outline:none}
 
 /* ========== Header ========== */
 #mainHeader{transition:all .6s cubic-bezier(.2,.8,.2,1);transform-origin:center bottom}
@@ -344,7 +344,7 @@ function openDetail(i){
   `;
   document.querySelectorAll('.mini').forEach((m,idx)=>m.classList.toggle('active',idx===i));
   detail.scrollTop = 0;
-  setTimeout(()=>detail.querySelector('.detail-close')?.focus(), 100);
+  setTimeout(()=>detail.querySelector('.detail-close')?.blur(), 100);
 }
 
 function closeDetail(){
@@ -356,7 +356,7 @@ function closeDetail(){
   detail.classList.remove('show');
   detail.style.width='';
   document.querySelectorAll('.mini').forEach(m=>m.classList.remove('active'));
-  setTimeout(()=>topicEls[0]?.focus(), 100);
+  setTimeout(()=>topicEls[0]?.blur(), 100);
 }
 
 document.addEventListener('keydown',(e)=>{
