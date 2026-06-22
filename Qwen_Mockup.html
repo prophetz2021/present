@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Thai POS Mobile - Warm & Friendly</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Kanit -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Kanit', 'sans-serif'],
+                    },
+                    colors: {
+                        thai: {
+                            bg: '#FFF8F0',      // ครีมอ่อน
+                            primary: '#D97706', // ส้มมะม่วง
+                            secondary: '#B45309', // ส้มอิฐ
+                            dark: '#7C2D12',    // น้ำตาลดินเผา
+                            surface: '#FFFFFF',
+                            gray: '#F3F4F6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #e5e7eb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Kanit', sans-serif;
+        }
+        
+        /* Mobile Frame */
+        #mobile-frame {
+            width: 100%;
+            max-width: 400px;
+            height: 850px;
+            background-color: #FFF8F0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border-radius: 2.5rem;
+            border: 12px solid #1f2937;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            background-color: #FFF8F0;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+            padding-bottom: 100px; /* Space for bottom actions */
+            display: none;
+            z-index: 10;
+        }
+
+        .screen.active {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Components */
+        .btn-large {
+            background-color: #D97706;
+            color: white;
+            font-weight: 600;
+            border-radius: 1rem;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(217, 119, 6, 0.3);
+            transition: transform 0.1s;
+        }
+        .btn-large:active { transform: scale(0.98); background-color: #B45309; }
+
+        .product-card {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .product-card:active { transform: scale(0.96); }
+
+        .cat-pill {
+            background: white;
+            color: #7C2D12;
+            padding: 0.6rem 1.2rem;
+            border-radius: 2rem;
+            font-weight: 500;
+            white-space: nowrap;
+            border: 1px solid #E5E7EB;
+            font-size: 0.95rem;
+        }
+        .cat-pill.active {
+            background: #D97706;
+            color: white;
+            border-color: #D97706;
+            box-shadow: 0 2px 4px rgba(217, 119, 6, 0.3);
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            width: 3.5rem;
+            height: 3.5rem;
+            background: #D97706;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
+            z-index: 50;
+            cursor: pointer;
+        }
+
+        /* Debug Nav */
+        .debug-nav {
+            position: absolute;
+            bottom: -50px;
+            left: 0;
+            width: 100%;
+            background: #1f2937;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            border-radius: 0 0 2rem 2rem;
+        }
+        .debug-nav button {
+            color: #9ca3af;
+            font-size: 0.7rem;
+            background: none;
+            border: none;
+        }
+        .debug-nav button.active { color: #D97706; font-weight: bold; }
+
+    </style>
+</head>
+<body>
+
+    <div id="mobile-frame">
+        
+        <!-- ================= SCREENS ================= -->
+
+        <!-- 1. ONBOARDING (Screen 5) -->
+        <div id="screen-onboarding" class="screen active p-6 flex flex-col justify-center h-full">
+            <div class="text-center mb-8 animate-bounce-slow">
+                <div class="w-24 h-24 bg-thai-primary rounded-full mx-auto flex items-center justify-center text-white text-4xl mb-4 shadow-lg">
+                    <i class="fas fa-store"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-thai-dark mb-2">ยินดีต้อนรับสู่ระบบขาย</h1>
+                <p class="text-gray-600 text-lg">ตั้งค่าร้านของคุณให้พร้อมขายใน 1 นาที</p>
+            </div>
+
+            <form onsubmit="event.preventDefault(); navigateTo('screen-pos');">
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-thai-dark font-medium mb-2 text-lg">ชื่อร้าน</label>
+                        <input type="text" value="ร้านป้าสมศรี" class="w-full p-4 rounded-xl border-2 border-gray-200 focus:border-thai-primary focus:bg-white outline-none text-lg bg-white transition-colors">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-thai-dark font-medium mb-2 text-lg">ประเภทร้าน</label>
+                        <div class="grid grid-cols-3 gap-3">
+                            <button type="button" class="p-3 rounded-xl border-2 border-thai-primary bg-thai-primary/10 text-thai-primary font-bold">ของชำ</button>
+                            <button type="button" class="p-3 rounded-xl border-2 border-gray-200 text-gray-500 bg-white">อาหาร</button>
+                            <button type="button" class="p-3 rounded-xl border-2 border-gray-200 text-gray-500 bg-white">เครื่องดื่ม</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-thai-dark font-medium mb-2 text-lg">เบอร์พร้อมเพย์</label>
+                        <input type="tel" placeholder="08x-xxx-xxxx" class="w-full p-4 rounded-xl border-2 border-gray-200 focus:border-thai-primary outline-none text-lg bg-white">
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit" class="w-full btn-large text-xl py-4 shadow-xl flex justify-center items-center gap-2">
+                            เริ่มใช้งานเลย <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- 2. POS / SELLING (Screen 1) -->
+        <div id="screen-pos" class="screen">
+            <!-- Header -->
+            <div class="sticky top-0 z-20 bg-thai-bg pt-4 pb-2 px-4 shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-thai-dark">ร้านป้าสมศรี</h2>
+                        <p class="text-sm text-gray-500">จันทร์ที่ 22 มิ.ย.</p>
+                    </div>
+                    <div class="flex gap-3">
+                         <!-- Button to Settings/Products -->
+                        <button onclick="navigateTo('screen-products')" class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-thai-dark shadow-sm">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                        <!-- Cart Button -->
+                        <button onclick="navigateTo('screen-cart')" class="w-12 h-12 rounded-full bg-thai-primary flex items-center justify-center text-white shadow-lg relative">
+                            <i class="fas fa-shopping-basket text-xl"></i>
+                            <span id="cart-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-6 h-6 flex items-center justify-center rounded-full border-2 border-white hidden">0</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Categories -->
+                <div class="flex overflow-x-auto no-scrollbar gap-2 pb-2">
+                    <button class="cat-pill active">ทั้งหมด</button>
+                    <button class="cat-pill">ส้มตำ</button>
+                    <button class="cat-pill">เครื่องดื่ม</button>
+                    <button class="cat-pill">ขนม</button>
+                    <button class="cat-pill">เครื่องปรุง</button>
+                </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div class="p-4 grid grid-cols-2 gap-4 pb-24">
+                <!-- Item 1 -->
+                <div class="product-card flex flex-col" onclick="addToCart('ส้มตำปูปลาร้า', 60)">
+                    <div class="h-32 bg-gray-200 relative">
+                        <img src="https://images.unsplash.com/photo-1596560548464-f010549b84d7?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover" alt="Som Tum">
+                    </div>
+                    <div class="p-3 flex-1 flex flex-col justify-between">
+                        <h3 class="font-bold text-thai-dark text-lg leading-tight">ส้มตำปูปลาร้า</h3>
+                        <div class="flex justify-between items-end mt-2">
+                            <span class="text-thai-primary font-bold text-xl">฿60</span>
+                            <div class="w-8 h-8 bg-thai-primary rounded-full flex items-center justify-center text-white shadow-md">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Item 2 -->
+                <div class="product-card flex flex-col" onclick="addToCart('ชาไทยเย็น', 45)">
+                    <div class="h-32 bg-gray-200 relative">
+                        <img src="https://images.unsplash.com/photo-1596791983803-326198d45222?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover" alt="Thai Tea">
+                    </div>
+                    <div class="p-3 flex-1 flex flex-col justify-between">
+                        <h3 class="font-bold text-thai-dark text-lg leading-tight">ชาไทยเย็น</h3>
+                        <div class="flex justify-between items-end mt-2">
+                            <span class="text-thai-primary font-bold text-xl">฿45</span>
+                            <div class="w-8 h-8 bg-thai-primary rounded-full flex items-center justify-center text-white shadow-md">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                 <!-- Item 3 -->
+                 <div class="product-card flex flex-col" onclick="addToCart('น้ำดื่ม', 10)">
+                    <div class="h-32 bg-gray-200 relative">
+                        <img src="https://images.unsplash.com/photo-1616118132534-381941362ef7?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover" alt="Water">
+                    </div>
+                    <div class="p-3 flex-1 flex flex-col justify-between">
+                        <h3 class="font-bold text-thai-dark text-lg leading-tight">น้ำดื่ม</h3>
+                        <div class="flex justify-between items-end mt-2">
+                            <span class="text-thai-primary font-bold text-xl">฿10</span>
+                            <div class="w-8 h-8 bg-thai-primary rounded-full flex items-center justify-center text-white shadow-md">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Item 4 -->
+                <div class="product-card flex flex-col" onclick="addToCart('ไข่ต้ม', 15)">
+                    <div class="h-32 bg-gray-200 relative">
+                        <img src="https://images.unsplash.com/photo-1582289545106-efecf907f21e?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover" alt="Egg">
+                    </div>
+                    <div class="p-3 flex-1 flex flex-col justify-between">
+                        <h3 class="font-bold text-thai-dark text-lg leading-tight">ไข่ต้ม</h3>
+                        <div class="flex justify-between items-end mt-2">
+                            <span class="text-thai-primary font-bold text-xl">฿15</span>
+                            <div class="w-8 h-8 bg-thai-primary rounded-full flex items-center justify-center text-white shadow-md">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Nav Buttons for Demo -->
+            <div class="fixed bottom-4 left-4 right-4 flex justify-between px-4 z-30 pointer-events-none">
+                <button onclick="navigateTo('screen-reports')" class="pointer-events-auto bg-white/90 backdrop-blur text-thai-dark px-4 py-2 rounded-full shadow-lg text-sm font-bold">
+                    <i class="fas fa-chart-bar mr-2"></i>ดูรายงาน
+                </button>
+                <button onclick="navigateTo('screen-history')" class="pointer-events-auto bg-white/90 backdrop-blur text-thai-dark px-4 py-2 rounded-full shadow-lg text-sm font-bold">
+                    <i class="fas fa-history mr-2"></i>ประวัติ
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. CART (Screen 2) -->
+        <div id="screen-cart" class="screen flex flex-col">
+            <!-- Header -->
+            <div class="p-4 flex items-center bg-white shadow-sm sticky top-0 z-10">
+                <button onclick="navigateTo('screen-pos')" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-thai-dark mr-4 hover:bg-gray-200">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </button>
+                <h2 class="text-2xl font-bold text-thai-dark">ตะกร้าสินค้า</h2>
+            </div>
+
+            <!-- Cart Items List -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4" id="cart-list">
+                <div class="text-center text-gray-400 mt-10 flex flex-col items-center">
+                    <i class="fas fa-shopping-basket text-6xl mb-4 text-gray-200"></i>
+                    <p class="text-lg">ยังไม่มีสินค้าในตะกร้า</p>
+                    <button onclick="navigateTo('screen-pos')" class="mt-4 text-thai-primary font-bold underline">เลือกสินค้า</button>
+                </div>
+            </div>
+
+            <!-- Footer Summary -->
+            <div class="bg-white p-6 rounded-t-3xl shadow-[0_-5px_15px_rgba(0,0,0,0.05)]">
+                <div class="flex justify-between items-center mb-6">
+                    <span class="text-gray-500 text-lg">ยอดรวมทั้งหมด</span>
+                    <span class="text-4xl font-bold text-thai-secondary" id="cart-total">฿0</span>
+                </div>
+                <button onclick="navigateTo('screen-payment')" class="w-full btn-large text-xl py-4 shadow-lg flex justify-center items-center gap-2">
+                    <span>คิดเงิน</span>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 4. PAYMENT (Screen 3) -->
+        <div id="screen-payment" class="screen">
+             <!-- Header -->
+             <div class="p-4 flex items-center bg-white shadow-sm sticky top-0 z-10">
+                <button onclick="navigateTo('screen-cart')" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-thai-dark mr-4 hover:bg-gray-200">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </button>
+                <h2 class="text-2xl font-bold text-thai-dark">ชำระเงิน</h2>
+            </div>
+
+            <div class="p-6 flex flex-col items-center">
+                <div class="text-center mb-8">
+                    <p class="text-gray-500 text-lg mb-1">ยอดชำระ</p>
+                    <h1 class="text-6xl font-bold text-thai-secondary" id="payment-total">฿0</h1>
+                </div>
+
+                <!-- Payment Methods -->
+                <div class="grid grid-cols-3 gap-4 w-full mb-8">
+                    <button class="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-sm border-2 border-transparent hover:border-thai-primary transition-all group" onclick="selectPayment(this)">
+                        <i class="fas fa-money-bill-wave text-3xl text-green-600 mb-2 group-hover:scale-110 transition-transform"></i>
+                        <span class="font-medium text-gray-700">เงินสด</span>
+                    </button>
+                    <button class="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-sm border-2 border-thai-primary bg-thai-primary/5 transition-all group" onclick="selectPayment(this)">
+                        <i class="fas fa-qrcode text-3xl text-thai-primary mb-2 group-hover:scale-110 transition-transform"></i>
+                        <span class="font-medium text-gray-700">สแกนจ่าย</span>
+                    </button>
+                    <button class="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-sm border-2 border-transparent hover:border-thai-primary transition-all group" onclick="selectPayment(this)">
+                        <i class="fas fa-university text-3xl text-blue-600 mb-2 group-hover:scale-110 transition-transform"></i>
+                        <span class="font-medium text-gray-700">โอนธนาคาร</span>
+                    </button>
+                </div>
+
+                <!-- QR Code Display -->
+                <div class="bg-white p-6 rounded-2xl shadow-md w-full max-w-xs mb-8 text-center border border-gray-100">
+                    <div class="w-48 h-48 bg-gray-100 mx-auto mb-4 flex items-center justify-center rounded-lg overflow-hidden border-2 border-dashed border-gray-300">
+                         <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PromptPayExample" alt="QR Code" class="w-full h-full object-cover">
+                    </div>
+                    <p class="text-lg font-bold text-thai-dark">081-234-5678</p>
+                    <p class="text-sm text-gray-500">ธนาคารกสิกรไทย</p>
+                </div>
+
+                <!-- Confirm Button -->
+                <button onclick="completeOrder()" class="w-full btn-large text-2xl py-5 shadow-xl bg-thai-secondary hover:bg-thai-dark">
+                    ยืนยันรับเงิน
+                </button>
+            </div>
+        </div>
+
+        <!-- 5. PRODUCT MANAGEMENT (Screen 4) -->
+        <div id="screen-products" class="screen">
+            <div class="p-4 flex items-center justify-between bg-white shadow-sm sticky top-0 z-10">
+                <div class="flex items-center">
+                    <button onclick="navigateTo('screen-pos')" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-thai-dark mr-4 hover:bg-gray-200">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </button>
+                    <h2 class="text-2xl font-bold text-thai-dark">จัดการสินค้า</h2>
+                </div>
+                <button class="text-thai-primary"><i class="fas fa-search text-xl"></i></button>
+            </div>
+
+            <div class="p-4 space-y-3 pb-24">
+                <!-- Product List Item -->
+                <div class="bg-white p-3 rounded-xl shadow-sm flex items-center justify-between border border-gray-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
+                             <img src="https://images.unsplash.com/photo-1596560548464-f010549b84d7?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg text-thai-dark">ส้มตำปูปลาร้า</h3>
+                            <p class="text-thai-primary font-semibold">฿60</p>
+                            <span class="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded">อาหาร</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="w-10 h-10 rounded-full bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-blue-50 hover:text-blue-500 transition-colors">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="w-10 h-10 rounded-full bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors" onclick="confirmDelete('ส้มตำปูปลาร้า')">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-3 rounded-xl shadow-sm flex items-center justify-between border border-gray-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1596791983803-326198d45222?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg text-thai-dark">ชาไทยเย็น</h3>
+                            <p class="text-thai-primary font-semibold">฿45</p>
+                            <span class="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded">เครื่องดื่ม</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="w-10 h-10 rounded-full bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-blue-50 hover:text-blue-500 transition-colors">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="w-10 h-10 rounded-full bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors" onclick="confirmDelete('ชาไทยเย็น')">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAB Add Product -->
+            <div class="fab" onclick="alert('เปิดฟอร์มเพิ่มสินค้าใหม่')">
+                <i class="fas fa-plus"></i>
+            </div>
+        </div>
+
+        <!-- 6. REPORTS (Screen 6) -->
+        <div id="screen-reports" class="screen">
+            <div class="p-4 flex items-center bg-white shadow-sm sticky top-0 z-10">
+                <button onclick="navigateTo('screen-pos')" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-thai-dark mr-4 hover:bg-gray-200">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </button>
+                <h2 class="text-2xl font-bold text-thai-dark">รายงานยอดขาย</h2>
+            </div>
+
+            <div class="p-4">
+                <!-- Today's Sales Big Card -->
+                <div class="bg-gradient-to-br from-thai-primary to-thai-secondary rounded-2xl p-6 text-white shadow-lg mb-6 text-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-10 -mt-10"></div>
+                    <p class="text-white/80 text-lg mb-1">ยอดขายวันนี้</p>
+                    <h1 class="text-5xl font-bold mb-2">฿4,250</h1>
+                    <div class="inline-block bg-white/20 px-3 py-1 rounded-full text-sm backdrop-blur-sm">
+                        <i class="fas fa-arrow-up mr-1"></i> +12% จากเมื่อวาน
+                    </div>
+                </div>
+
+                <!-- Time Filter -->
+                <div class="flex bg-white rounded-xl p-1 shadow-sm mb-6">
+                    <button class="flex-1 py-2 rounded-lg bg-thai-primary/10 text-thai-primary font-bold">วันนี้</button>
+                    <button class="flex-1 py-2 rounded-lg text-gray-500">สัปดาห์นี้</button>
+                    <button class="flex-1 py-2 rounded-lg text-gray-500">เดือนนี้</button>
+                </div>
+
+                <!-- Simple Chart Visualization (CSS Bars) -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm mb-6">
+                    <h3 class="font-bold text-thai-dark mb-4">ยอดขาย 7 วันล่าสุด</h3>
+                    <div class="flex justify-between items-end h-40 gap-2">
+                        <div class="flex flex-col items-center w-full">
+                            <div class="w-full bg-thai-primary/20 rounded-t-md h-[40%]"></div>
+                            <span class="text-xs text-gray-400 mt-1">จ</span>
+                        </div>
+                        <div class="flex flex-col items-center w-full">
+                            <div class="w-full bg-thai-primary/20 rounded-t-md h-[60%]"></div>
+                            <span class="text-xs text-gray-400 mt-1">อ</span>
+                        </div>
+                        <div class="flex flex-col items-center w-full">
+                            <div class="w-full bg-thai-primary/20 rounded-t-md h-[30%]"></div>
+                            <span class="text-xs text-gray-400 mt-1">พ</span>
+                        </div>
+                        <div class="flex flex-col items-center w-full">
+                            <div class="w-full bg-thai-primary rounded-t-md h-[80%]"></div>
+                            <span class="text-xs text-gray-400 mt-1">พฤ</span>
+                        </div>
+                        <div class="flex flex-col items-center w-full">
+                            <div class="w-full bg-thai-primary/20 rounded-t-md h-[50%]"></div>
+                            <span class="text-xs text-gray-400 mt-1">ศ</span>
+                        </div>
+                        <div class="flex flex-col items-center w-full">
+                            <div class="w-full bg-thai-primary/20 rounded-t-md h-[90%]"></div>
+                            <span class="text-xs text-gray-400 mt-1">ส</span>
+                        </div>
+                        <div class="flex flex-col items-center w-full">
+                            <div class="w-full bg-thai-primary/20 rounded-t-md h-[70%]"></div>
+                            <span class="text-xs text-gray-400 mt-1">อา</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Products -->
+                <h3 class="font-bold text-thai-dark mb-3 text-lg">ขายดี 5 อันดับ</h3>
+                <div class="space-y-3">
+                    <div class="bg-white p-3 rounded-xl shadow-sm flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold text-thai-primary w-6">1</span>
+                            <span>ส้มตำปูปลาร้า</span>
+                        </div>
+                        <span class="font-bold text-gray-700">42 จาน</span>
+                    </div>
+                    <div class="bg-white p-3 rounded-xl shadow-sm flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold text-gray-400 w-6">2</span>
+                            <span>ชาไทยเย็น</span>
+                        </div>
+                        <span class="font-bold text-gray-700">35 แก้ว</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. ORDER HISTORY (Screen 7) -->
+        <div id="screen-history" class="screen">
+            <div class="p-4 flex items-center bg-white shadow-sm sticky top-0 z-10">
+                <button onclick="navigateTo('screen-pos')" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-thai-dark mr-4 hover:bg-gray-200">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </button>
+                <h2 class="text-2xl font-bold text-thai-dark">ประวัติการขาย</h2>
+            </div>
+
+            <!-- Search/Filter -->
+            <div class="p-4 pb-0">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-4 top-4 text-gray-400"></i>
+                    <input type="text" placeholder="ค้นหาเลขออเดอร์..." class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 bg-white focus:border-thai-primary outline-none">
+                </div>
+            </div>
+
+            <!-- Order List -->
+            <div class="p-4 space-y-4">
+                <!-- Order Item -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-thai-primary">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h3 class="font-bold text-lg text-thai-dark">#ORD-2023</h3>
+                            <p class="text-sm text-gray-500">22 มิ.ย. 2026, 10:30 น.</p>
+                        </div>
+                        <span class="font-bold text-xl text-thai-secondary">฿125</span>
+                    </div>
+                    <div class="text-sm text-gray-600 mb-3 line-clamp-1">
+                        ส้มตำปูปลาร้า x1, ชาไทย x2...
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium hover:bg-gray-200">
+                            <i class="fas fa-print mr-1"></i> พิมพ์ซ้ำ
+                        </button>
+                        <button class="flex-1 bg-thai-primary/10 text-thai-primary py-2 rounded-lg text-sm font-medium hover:bg-thai-primary/20">
+                            <i class="fas fa-share-alt mr-1"></i> แชร์
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-gray-300">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h3 class="font-bold text-lg text-thai-dark">#ORD-2022</h3>
+                            <p class="text-sm text-gray-500">22 มิ.ย. 2026, 09:15 น.</p>
+                        </div>
+                        <span class="font-bold text-xl text-thai-secondary">฿45</span>
+                    </div>
+                    <div class="text-sm text-gray-600 mb-3 line-clamp-1">
+                        ชาไทยเย็น x1
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium hover:bg-gray-200">
+                            <i class="fas fa-print mr-1"></i> พิมพ์ซ้ำ
+                        </button>
+                        <button class="flex-1 bg-thai-primary/10 text-thai-primary py-2 rounded-lg text-sm font-medium hover:bg-thai-primary/20">
+                            <i class="fas fa-share-alt mr-1"></i> แชร์
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ================= DEMO NAVIGATION BAR (For Testing Only) ================= -->
+        <div class="debug-nav">
+            <button onclick="navigateTo('screen-onboarding')" id="nav-onboarding">Onboard</button>
+            <button onclick="navigateTo('screen-pos')" id="nav-pos" class="active">POS</button>
+            <button onclick="navigateTo('screen-cart')" id="nav-cart">Cart</button>
+            <button onclick="navigateTo('screen-products')" id="nav-products">Products</button>
+            <button onclick="navigateTo('screen-reports')" id="nav-reports">Reports</button>
+            <button onclick="navigateTo('screen-history')" id="nav-history">History</button>
+        </div>
+
+    </div>
+
+    <!-- LOGIC -->
+    <script>
+        // State
+        let cart = [];
+        let total = 0;
+
+        // Navigation Logic
+        function navigateTo(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Show target screen
+            const target = document.getElementById(screenId);
+            if(target) {
+                target.classList.add('active');
+                
+                // Update Demo Nav Highlight
+                document.querySelectorAll('.debug-nav button').forEach(btn => btn.classList.remove('active'));
+                const navBtn = document.getElementById('nav-' + screenId.replace('screen-', ''));
+                if(navBtn) navBtn.classList.add('active');
+            }
+
+            // Specific logic when entering screens
+            if(screenId === 'screen-cart') renderCart();
+            if(screenId === 'screen-payment') updatePaymentTotal();
+        }
+
+        // Cart Logic
+        function addToCart(name, price) {
+            const existing = cart.find(item => item.name === name);
+            if(existing) {
+                existing.qty++;
+            } else {
+                cart.push({ name: name, price: price, qty: 1 });
+            }
+            updateCartBadge();
+            
+            // Visual Feedback
+            const badge = document.getElementById('cart-badge');
+            badge.classList.add('scale-125');
+            setTimeout(() => badge.classList.remove('scale-125'), 200);
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            renderCart();
+            updateCartBadge();
+        }
+
+        function updateCartBadge() {
+            const count = cart.reduce((sum, item) => sum + item.qty, 0);
+            const badge = document.getElementById('cart-badge');
+            badge.innerText = count;
+            if(count > 0) {
+                badge.classList.remove('hidden');
+                badge.classList.add('flex');
+            } else {
+                badge.classList.add('hidden');
+                badge.classList.remove('flex');
+            }
+        }
+
+        function renderCart() {
+            const list = document.getElementById('cart-list');
+            list.innerHTML = '';
+            total = 0;
+
+            if(cart.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center text-gray-400 mt-10 flex flex-col items-center">
+                        <i class="fas fa-shopping-basket text-6xl mb-4 text-gray-200"></i>
+                        <p class="text-lg">ยังไม่มีสินค้าในตะกร้า</p>
+                        <button onclick="navigateTo('screen-pos')" class="mt-4 text-thai-primary font-bold underline">เลือกสินค้า</button>
+                    </div>`;
+                document.getElementById('cart-total').innerText = '฿0';
+                return;
+            }
+
+            cart.forEach((item, index) => {
+                total += item.price * item.qty;
+                const div = document.createElement('div');
+                div.className = 'bg-white p-3 rounded-xl shadow-sm flex justify-between items-center border border-gray-100';
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-thai-dark">${item.name}</h3>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-thai-primary font-bold">฿${item.price}</span>
+                                <span class="text-gray-400 text-sm">x ${item.qty}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="removeFromCart(${index})" class="w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                `;
+                list.appendChild(div);
+            });
+
+            document.getElementById('cart-total').innerText = '฿' + total.toLocaleString();
+        }
+
+        function updatePaymentTotal() {
+            document.getElementById('payment-total').innerText = '฿' + total.toLocaleString();
+        }
+
+        function selectPayment(btn) {
+            // Reset styles
+            document.querySelectorAll('#screen-payment .grid button').forEach(b => {
+                b.classList.remove('border-thai-primary', 'bg-thai-primary/5');
+                b.classList.add('border-transparent');
+            });
+            // Set active
+            btn.classList.remove('border-transparent');
+            btn.classList.add('border-thai-primary', 'bg-thai-primary/5');
+        }
+
+        function completeOrder() {
+            alert('บันทึกการขายสำเร็จ! ยอดเงิน: ฿' + total);
+            cart = [];
+            updateCartBadge();
+            navigateTo('screen-pos');
+        }
+
+        function confirmDelete(productName) {
+            if(confirm(`คุณต้องการลบ "${productName}" ใช่หรือไม่?`)) {
+                alert('ลบสินค้าเรียบร้อย (Mockup)');
+            }
+        }
+
+        // Initialize
+        navigateTo('screen-pos');
+
+    </script>
+</body>
+</html>
+
